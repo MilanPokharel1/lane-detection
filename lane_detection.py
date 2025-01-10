@@ -78,10 +78,11 @@ def process_frame(frame, steering_filter):
     binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
     binary = cv2.erode(binary, kernel, iterations=1)
     
+    # Adjust the ROI to include farther distances
     roi_vertices = np.array([
         [(0, height),
-         (0, height/2),
-         (width, height/2),
+         (0, height * 0.3),  # Increased ROI to start higher
+         (width, height * 0.3),
          (width, height)]], dtype=np.int32)
     
     mask = np.zeros_like(binary)
@@ -104,7 +105,8 @@ def process_frame(frame, steering_filter):
             x1, y1, x2, y2 = line[0]
             angle = np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi
             if abs(angle) > 20 and abs(angle) < 160:
-                cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                # Use darker green for the overlay
+                cv2.line(line_image, (x1, y1), (x2, y2), (0, 100, 0), 30)
     
     lane_center = calculate_lane_center(lines, width, height)
     raw_steering_angle, raw_offset = calculate_steering_angle(frame_center, lane_center, width)
@@ -114,7 +116,7 @@ def process_frame(frame, steering_filter):
     
     # Visualization
     cv2.line(line_image, (frame_center, height), (frame_center, height - 100), (255, 0, 0), 2)
-    cv2.line(line_image, (lane_center, height), (lane_center, height - 100), (0, 255, 0), 2)
+    cv2.line(line_image, (lane_center, height), (lane_center, height - 100), (0, 100, 0), 2)  # Darker green
     
     offset_color = (0, 255, 0) if abs(offset) < 20 else (0, 165, 255) if abs(offset) < 50 else (0, 0, 255)
     cv2.line(line_image, (frame_center, height - 20), (int(frame_center + offset), height - 20), offset_color, 4)
@@ -132,7 +134,7 @@ def process_frame(frame, steering_filter):
     return result, binary, steering_angle, offset
 
 def main():
-    cap = cv2.VideoCapture('lane_video4.mp4')
+    cap = cv2.VideoCapture('lane3.mp4')
     
     if not cap.isOpened():
         print("Error: Could not open video file")
